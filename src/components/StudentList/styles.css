@@ -1,0 +1,12 @@
+.model-create.hidden{
+    display: none;
+}
+.model-create.show{
+    display: block;
+}
+.deletemodel.hidden{
+    display: none;
+}
+.deletemodel.show{
+    display: block;
+}
