@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
+import dayjs from 'dayjs';
 import { Stack, TextField, Button, Typography, FormControl, FormHelperText } from '@mui/material';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -38,6 +39,8 @@ function StudentList() {
   let [students, setStudents] = useState([]);
   let [idStudent, setIdStudent] = useState(9500);
   let [deleteModel, setDeleteModel] = useState('deletemodel hidden');
+  let [overlay, setOverlay] = useState('overlay hidden');
+  let [updateStudent, setUpdateStudent] = useState('update hidden');
   let [dataFound, setDataFound] = useState([]);
 
   (function setDataStudentsInLocalStorage() {
@@ -48,8 +51,7 @@ function StudentList() {
     }
   })();
 
-  function closeCreateStudetnBox() {
-    setNewStudentBox('model-create hidden');
+  function resetAllValue() {
     setValueName('');
     setValuePhone('');
     setValueBirthDay(null);
@@ -58,12 +60,19 @@ function StudentList() {
     setErrBirthday('');
   }
 
+  function closeModelStudentBox() {
+    setNewStudentBox('model-create hidden');
+    setUpdateStudent('update hidden');
+    setOverlay('overlay hidden');
+    resetAllValue();
+  }
+
   function handleClickCreateBtn() {
     setNewStudentBox('model-create show');
+    setOverlay('overlay show');
   }
 
   function checkNumberPhone() {
-    console.log(valuePhone.length);
     if (valuePhone.length <= 9 || isNaN(valuePhone)) {
       return false;
     }
@@ -87,24 +96,16 @@ function StudentList() {
   }
 
   function valueNewId() {
-    console.log(students);
     if (students.length == 0) {
       setIdStudent(9500);
       return idStudent;
     } else {
-      console.log(students.map((student) => student.idStudent));
       let maxIdCurrent = Math.max(...students.map((student) => student.idStudent));
-      console.log('idmax', maxIdCurrent);
       return maxIdCurrent + 1;
     }
   }
 
-  function handleCreateStudent() {
-    if (students.length <= 0) {
-      setIdStudent(9500);
-    } else {
-      setIdStudent(idStudent + 1);
-    }
+  function validateStudentInputs() {
     if (!valueName) {
       setErrName('Please enter name');
     }
@@ -114,15 +115,24 @@ function StudentList() {
     if (!valueBirthday) {
       setErrBirthday('Please enter birthday');
     }
+    return checkName() && checkNumberPhone() && isValidDateOfBirthday(valueBirthday.format('MM/DD/YYYY'));
+  }
 
-    if (checkName() && checkNumberPhone() && isValidDateOfBirthday(valueBirthday.format('MM/DD/YYYY'))) {
-      let date = new Date(valueBirthday);
-      let formatedDate = `${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}`;
+  function formatDate(dateM2) {
+    let date = new Date(dateM2);
+    let formatedDate = `${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}`;
+    return formatedDate;
+  }
+
+  function handleCreateStudent() {
+    if (validateStudentInputs()) {
+      let formatedDate = formatDate(valueBirthday);
       let newId = valueNewId();
       students.push({ idStudent: newId, name: valueName, birth: formatedDate, phone: valuePhone });
       setStudents(students);
+      setDataFound(students);
       localStorage.setItem('students', JSON.stringify(students));
-      closeCreateStudetnBox();
+      closeModelStudentBox();
     } else {
       alert('Errs please enter valid');
     }
@@ -146,6 +156,30 @@ function StudentList() {
     );
     setDataFound(data);
   }
+
+  function handleClickUpdateIcon(id) {
+    let student = students.filter((student) => student.idStudent === id)[0];
+    let birthDateParts = student.birth.split('-');
+    let formattedBirthDate = `${birthDateParts[1]}/${birthDateParts[0]}/${birthDateParts[2]}`;
+    let birthDateDayjs = dayjs(formattedBirthDate);
+    setValueName(student.name);
+    setValuePhone(student.phone);
+    setValueBirthDay(birthDateDayjs);
+    setIdStudent(id);
+    setUpdateStudent('update show');
+  }
+
+  function handleUpdateStudent() {
+    let newStudetList = students.map((student) =>
+      student.idStudent === idStudent
+        ? { idStudent: student.idStudent, name: valueName, birth: formatDate(valueBirthday), phone: valuePhone }
+        : student,
+    );
+    setStudents(newStudetList);
+    setDataFound(newStudetList);
+    localStorage.setItem('students', JSON.stringify(newStudetList));
+  }
+
   return (
     <Stack sx={{ p: 10, boxSizing: 'border-box', width: '100%', display: 'flex', justifyContent: 'center' }}>
       <Stack display="flex" direction="row" sx={{ width: '60%', gap: '5px' }}>
@@ -188,15 +222,18 @@ function StudentList() {
                     birth={student.birth}
                     phone={student.phone}
                     handleClickDeleteIcon={handleClickDeleteIcon}
+                    handleClickUpdateIcon={handleClickUpdateIcon}
                   />
                 ))}
             </TableBody>
           </Table>
         </TableContainer>
       </Stack>
+      {/* model create student */}
       <Stack
         className={newStudentBox}
         sx={{
+          zIndex: 200,
           boxShadow: '1px 1px 7px 6px #2925254f',
           p: 2,
           position: 'absolute',
@@ -300,7 +337,7 @@ function StudentList() {
             },
           }}
           onClick={() => {
-            closeCreateStudetnBox();
+            closeModelStudentBox();
             setValueName('');
           }}
         >
@@ -311,6 +348,7 @@ function StudentList() {
       <Stack
         className={deleteModel}
         sx={{
+          zIndex: 200,
           position: 'absolute',
           height: 'auto',
           maxWidth: '300px',
@@ -353,7 +391,136 @@ function StudentList() {
           </Button>
         </Stack>
       </Stack>
-      <Stack className="overlay"></Stack>
+      {/* model update student */}
+      <Stack
+        className={updateStudent}
+        sx={{
+          zIndex: 200,
+          boxShadow: '1px 1px 7px 6px #2925254f',
+          p: 2,
+          position: 'absolute',
+          top: '10%',
+          left: '50%',
+          transform: 'translate(-50%, 0)',
+          height: 'auto',
+          width: '600px',
+          backgroundColor: '#fff',
+          borderRadius: '10px',
+        }}
+      >
+        <Typography textAlign="center" fontSize="20px" fontWeight="bold">
+          Update student
+        </Typography>
+        <Stack>
+          <FormControl sx={{ mb: 2 }}>
+            <Typography sx={{ mb: 1 }}>Name</Typography>
+            <TextField
+              value={valueName}
+              className="name-student"
+              label="Please enter name"
+              onChange={(e) => {
+                let valueName = e.target.value;
+                setValueName(valueName);
+                if (valueName.length <= 0) {
+                  setErrName('Please enter name');
+                } else {
+                  setErrName('');
+                }
+              }}
+            ></TextField>
+            <FormHelperText sx={{ color: 'red' }}>{errName}</FormHelperText>
+          </FormControl>
+
+          <FormControl sx={{ mb: 2 }}>
+            <Typography sx={{ mb: 1 }}>Number phone</Typography>
+            <TextField
+              value={valuePhone}
+              className="phone-student"
+              label="Please enter number phone"
+              onChange={(e) => {
+                let valuePhone = e.target.value;
+                setValuePhone(valuePhone);
+                if (valuePhone.length === 0) {
+                  setErrPhone('Please enter a phone number');
+                } else if (isNaN(valuePhone) || valuePhone.length < 10) {
+                  setErrPhone('Please enter a valid phone number');
+                } else {
+                  setErrPhone('');
+                }
+              }}
+            ></TextField>
+            <FormHelperText sx={{ color: 'red' }}>{errPhone}</FormHelperText>
+          </FormControl>
+          <FormControl sx={{ mb: 2 }}>
+            <Typography sx={{ mb: 1 }}>Date of birth</Typography>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DemoContainer components={['DateField']}>
+                <DateField
+                  value={valueBirthday}
+                  className="birthday-student"
+                  label="Date of birth"
+                  onChange={(date) => {
+                    setValueBirthDay(date);
+                    let checkBirthday = isValidDateOfBirthday(date.format('MM/DD/YYYY'));
+                    if (checkBirthday) {
+                      setErrBirthday('');
+                    } else {
+                      setErrBirthday('Please enter a valid date of birth');
+                    }
+                  }}
+                />
+              </DemoContainer>
+            </LocalizationProvider>
+            <FormHelperText sx={{ color: 'red' }}>{errBirthday}</FormHelperText>
+          </FormControl>
+        </Stack>
+        <Stack>
+          <Button
+            variant="contained"
+            sx={{ mt: 2 }}
+            onClick={() => {
+              if (validateStudentInputs()) {
+                handleUpdateStudent();
+                closeModelStudentBox();
+              } else {
+                alert('Please enter valid inputs');
+              }
+            }}
+          >
+            Update
+          </Button>
+        </Stack>
+        <Button
+          variant="contained"
+          sx={{
+            position: 'absolute',
+            right: '10px',
+            top: '10px',
+            bgcolor: 'red',
+            '&:hover': {
+              backgroundColor: 'red',
+            },
+          }}
+          onClick={() => {
+            setUpdateStudent('update hidden');
+            resetAllValue();
+          }}
+        >
+          <CloseOutlinedIcon></CloseOutlinedIcon>
+        </Button>
+      </Stack>
+      <Stack
+        className={overlay}
+        sx={{
+          position: 'absolute',
+          top: 0,
+          bottom: 0,
+          left: 0,
+          right: 0,
+          bgcolor: '#0000004f',
+          zIndex: 100,
+        }}
+      ></Stack>
     </Stack>
   );
 }

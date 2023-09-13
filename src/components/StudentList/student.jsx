@@ -22,9 +22,10 @@ Student.propTypes = {
   birth: PropTypes.string,
   phone: PropTypes.string,
   handleClickDeleteIcon: PropTypes.func,
+  handleClickUpdateIcon: PropTypes.func,
 };
 
-function Student({ id, name, birth, phone, handleClickDeleteIcon }) {
+function Student({ id, name, birth, phone, handleClickDeleteIcon, handleClickUpdateIcon }) {
   return (
     <TableRow
       sx={{
@@ -46,7 +47,12 @@ function Student({ id, name, birth, phone, handleClickDeleteIcon }) {
         >
           <DeleteOutlineOutlinedIcon></DeleteOutlineOutlinedIcon>
         </Button>
-        <Button variant="contained">
+        <Button
+          variant="contained"
+          onClick={() => {
+            handleClickUpdateIcon(id);
+          }}
+        >
           <EditIcon></EditIcon>
         </Button>
       </StyledTableCell>

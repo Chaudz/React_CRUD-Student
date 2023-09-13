@@ -10,3 +10,15 @@
 .deletemodel.show{
     display: block;
 }
+.overlay.hidden{
+    display: none;
+}
+.update.show{
+    display: block;
+}
+.update.hidden{
+    display: none;
+}
+.overlay.show{
+    display: block;
+}
