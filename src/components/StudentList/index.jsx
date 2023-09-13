@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import PropTypes from 'prop-types';
+import React from 'react';
+import { useState } from 'react';
 import dayjs from 'dayjs';
 import { Stack, TextField, Button, Typography, FormControl, FormHelperText } from '@mui/material';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
@@ -63,6 +63,7 @@ function StudentList() {
   function closeModelStudentBox() {
     setNewStudentBox('model-create hidden');
     setUpdateStudent('update hidden');
+    setDeleteModel('deletemodel hidden');
     setOverlay('overlay hidden');
     resetAllValue();
   }
@@ -148,7 +149,7 @@ function StudentList() {
     setStudents(newStudentList);
     setDataFound(newStudentList);
     localStorage.setItem('students', JSON.stringify(newStudentList));
-    setDeleteModel('deletemodel hidden');
+    closeModelStudentBox();
   }
 
   function handleChangeNameSearch(value) {
