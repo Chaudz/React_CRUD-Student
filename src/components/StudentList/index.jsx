@@ -181,6 +181,7 @@ function StudentList() {
     setStudents(newStudetList);
     setDataFound(newStudetList);
     localStorage.setItem('students', JSON.stringify(newStudetList));
+    closeModelStudentBox();
   }
 
   return (
