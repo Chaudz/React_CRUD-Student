@@ -140,6 +140,7 @@ function StudentList() {
 
   function handleClickDeleteIcon(id) {
     setDeleteModel('deletemodel show');
+    setOverlay('overlay show');
     setIdStudent(id);
   }
   function handleDeleteStudent() {
@@ -167,6 +168,7 @@ function StudentList() {
     setValueBirthDay(birthDateDayjs);
     setIdStudent(id);
     setUpdateStudent('update show');
+    setOverlay('overlay show');
   }
 
   function handleUpdateStudent() {
@@ -338,7 +340,6 @@ function StudentList() {
           }}
           onClick={() => {
             closeModelStudentBox();
-            setValueName('');
           }}
         >
           <CloseOutlinedIcon></CloseOutlinedIcon>
@@ -385,6 +386,7 @@ function StudentList() {
             variant="contained"
             onClick={() => {
               setDeleteModel('deletemodel hidden');
+              setOverlay('overlay hidden');
             }}
           >
             Cancel
@@ -481,7 +483,6 @@ function StudentList() {
             onClick={() => {
               if (validateStudentInputs()) {
                 handleUpdateStudent();
-                closeModelStudentBox();
               } else {
                 alert('Please enter valid inputs');
               }
@@ -502,7 +503,7 @@ function StudentList() {
             },
           }}
           onClick={() => {
-            setUpdateStudent('update hidden');
+            closeModelStudentBox();
             resetAllValue();
           }}
         >
